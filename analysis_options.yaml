@@ -1,0 +1,4 @@
+# Bewusst schlank gehalten (ohne zusätzliches Lint-Paket).
+analyzer:
+  exclude:
+    - build/**

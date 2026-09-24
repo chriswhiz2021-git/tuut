@@ -1,0 +1,21 @@
+name: tuut_app
+description: Tuut – einfache, quelloffene Alternative zum klassischen Skype.
+publish_to: 'none'
+version: 0.2.0+2
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+# "any" = neueste zueinander passende Versionen. Nach dem ersten erfolgreichen
+# Build werden die Versionen festgeschrieben, damit sich nichts unbemerkt ändert.
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  matrix: any
+  path_provider: any
+  sqflite_common_ffi: any
+
+flutter:
+  uses-material-design: true
