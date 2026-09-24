@@ -1,0 +1,80 @@
+name: Tuut bauen
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  android:
+    name: Android-App
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Android-Projektteile erzeugen
+        run: flutter create --project-name tuut_app --org de.tuut --platforms=android .
+
+      - name: Internet und lokalen Testserver erlauben, App-Name setzen
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          grep -q 'android.permission.INTERNET' "$M" || sed -i 's|<application|<uses-permission android:name="android.permission.INTERNET"/>\n    <application|' "$M"
+          grep -q 'usesCleartextTraffic' "$M" || sed -i 's|<application|<application android:usesCleartextTraffic="true"|' "$M"
+          sed -i 's|android:label="tuut_app"|android:label="Tuut"|' "$M"
+          cat "$M"
+
+      - name: Bibliotheken laden
+        run: flutter pub get
+
+      - name: APK bauen
+        run: flutter build apk --release
+
+      - name: APK benennen
+        run: cp build/app/outputs/flutter-apk/app-release.apk Tuut.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tuut-android
+          path: Tuut.apk
+          if-no-files-found: error
+
+  windows:
+    name: Windows-Programm
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Windows-Projektteile erzeugen
+        run: flutter create --project-name tuut_app --org de.tuut --platforms=windows .
+
+      - name: Fenstertitel setzen
+        run: |
+          (Get-Content windows/runner/main.cpp) -replace 'L"tuut_app"', 'L"Tuut"' | Set-Content windows/runner/main.cpp
+
+      - name: Bibliotheken laden
+        run: flutter pub get
+
+      - name: Windows-Programm bauen
+        run: flutter build windows --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tuut-windows
+          path: build/windows/x64/runner/Release/
+          if-no-files-found: error
