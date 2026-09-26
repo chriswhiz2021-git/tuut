@@ -1,10 +1,10 @@
-// Tuut – Schritt 1b: Kontaktliste. Große Bedienelemente, mobil zuerst.
-// Chat und Anruf pro Kontakt kommen in Schritt 2/3 – hier gibt es noch keine
-// Knöpfe dafür, damit nichts Funktionsloses angeboten wird.
+// Tuut – Kontaktliste. Große Bedienelemente, mobil zuerst.
+// Antippen eines bestätigten Kontakts öffnet den Chat; Hörer-Symbol startet einen Sprachanruf.
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:matrix/matrix.dart';
 import '../matrix_service.dart';
+import 'chat_screen.dart';
 import 'login_screen.dart';
 
 class ContactsScreen extends StatefulWidget {
@@ -128,15 +128,22 @@ class _ContactTile extends StatelessWidget {
     final name = room.getLocalizedDisplayname();
     final invited = room.membership == Membership.invite; // ich wurde eingeladen
     final waiting = !invited && room.summary.mJoinedMemberCount == 1; // ich warte auf Annahme
+    final preview = room.lastEvent?.body;
+    final subtitle = invited
+        ? 'Möchte dich als Kontakt hinzufügen'
+        : waiting
+            ? 'Anfrage gesendet – wartet auf Annahme'
+            : (preview == null || preview.isEmpty ? 'Noch keine Nachrichten – tippen zum Schreiben' : preview);
     return ListTile(
       minTileHeight: 72,
       leading: CircleAvatar(radius: 26, child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?')),
       title: Text(name, style: const TextStyle(fontSize: 18)),
-      subtitle: Text(
-        invited ? 'Möchte dich als Kontakt hinzufügen'
-                : waiting ? 'Anfrage gesendet – wartet auf Annahme'
-                          : 'Kontakt bestätigt',
-      ),
+      subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+      onTap: invited
+          ? null
+          : () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => ChatScreen(room: room, service: service)),
+              ),
       trailing: invited
           ? Row(mainAxisSize: MainAxisSize.min, children: [
               IconButton(tooltip: 'Ablehnen', icon: const Icon(Icons.close), onPressed: () async {
@@ -146,7 +153,30 @@ class _ContactTile extends StatelessWidget {
                 await service.acceptInvite(room); toast('Kontakt angenommen.');
               }, child: const Text('Annehmen')),
             ])
-          : null,
+          : Row(mainAxisSize: MainAxisSize.min, children: [
+              IconButton(
+                tooltip: 'Sprachanruf',
+                iconSize: 28,
+                icon: Icon(Icons.call, color: waiting ? null : Colors.green),
+                onPressed: waiting
+                    ? null
+                    : () async {
+                        try {
+                          await service.calls.startVoiceCall(room);
+                        } catch (e) {
+                          toast('Anruf nicht möglich: ${e.toString().replaceFirst('Exception: ', '')}');
+                        }
+                      },
+              ),
+              IconButton(
+                tooltip: 'Chat öffnen',
+                iconSize: 28,
+                icon: const Icon(Icons.chat_bubble_outline),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => ChatScreen(room: room, service: service)),
+                ),
+              ),
+            ]),
     );
   }
 }

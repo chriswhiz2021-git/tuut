@@ -1,0 +1,76 @@
+name: tuut-dev
+
+# Tuut-Server v3: Matrix-Homeserver (Synapse) + Guthaben-Dienst, je mit PostgreSQL
+# Lokale Entwicklungsumgebung. Keine echten Geheimnisse hier eintragen.
+# Das DB-Passwort ist ein reiner Entwicklungs-Standardwert (Datenbank ist von
+# aussen nicht erreichbar). Echter Server: eigene Konfiguration, nie ins Repository.
+
+services:
+  synapse-db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: ${SYNAPSE_DB_PASSWORD:-tuut-lokal-nur-zum-testen}
+      POSTGRES_DB: synapse
+      # Synapse verlangt C-Collation, sonst startet es nicht.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - tuut-synapse-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  synapse:
+    image: ghcr.io/element-hq/synapse:latest
+    restart: unless-stopped
+    depends_on:
+      synapse-db:
+        condition: service_healthy
+    environment:
+      SYNAPSE_SERVER_NAME: tuut.local
+      SYNAPSE_REPORT_STATS: "no"
+      SYNAPSE_DB_PASSWORD: ${SYNAPSE_DB_PASSWORD:-tuut-lokal-nur-zum-testen}
+    volumes:
+      - ./synapse-data:/data
+    ports:
+      - "8008:8008"
+
+  billing-db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tuut
+      POSTGRES_PASSWORD: ${BILLING_DB_PASSWORD:-tuut-guthaben-lokal}
+      POSTGRES_DB: billing
+    volumes:
+      - tuut-billing-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tuut -d billing"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  billing:
+    build: ./billing
+    restart: unless-stopped
+    depends_on:
+      billing-db:
+        condition: service_healthy
+      synapse:
+        condition: service_started
+    # Schlüssel (Stripe usw.) stehen AUSSERHALB des Projektordners (SERVER-START setzt den Pfad),
+    # damit sie nie versehentlich zu GitHub hochgeladen werden.
+    env_file:
+      - ${TUUT_EINSTELLUNGEN:-einstellungen.env}
+    environment:
+      DATABASE_URL: postgresql://tuut:${BILLING_DB_PASSWORD:-tuut-guthaben-lokal}@billing-db:5432/billing
+      SYNAPSE_URL: http://synapse:8008
+    ports:
+      - "8787:8787"
+
+volumes:
+  tuut-synapse-db:
+  tuut-billing-db:

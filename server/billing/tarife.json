@@ -1,0 +1,20 @@
+{
+  "hinweis": "Preise in Cent pro Minute als Text mit Punkt (z. B. \"5.00\"). Takt \"60/60\" = minutengenau, \"60/1\" = erste Minute voll, danach sekundengenau. Ziele ohne Eintrag sind gesperrt. Der längste passende Präfix gewinnt. Nach Änderungen SERVER-START erneut ausführen.",
+  "tarife": [
+    { "praefix": "49",    "name": "Deutschland Festnetz", "cent_pro_minute": "5.00", "verbindungsgebuehr_cent": 0, "takt": "60/60" },
+
+    { "praefix": "4915",  "name": "Deutschland Mobilfunk", "gesperrt": true, "grund": "Preis für Mobilfunk noch nicht festgelegt" },
+    { "praefix": "4916",  "name": "Deutschland Mobilfunk", "gesperrt": true, "grund": "Preis für Mobilfunk noch nicht festgelegt" },
+    { "praefix": "4917",  "name": "Deutschland Mobilfunk", "gesperrt": true, "grund": "Preis für Mobilfunk noch nicht festgelegt" },
+
+    { "praefix": "49900", "name": "Premiumdienste",       "gesperrt": true, "grund": "Premiumnummer (0900)" },
+    { "praefix": "49137", "name": "Massenverkehr",        "gesperrt": true, "grund": "Sondernummer (0137)" },
+    { "praefix": "49180", "name": "Servicenummern",       "gesperrt": true, "grund": "Sondernummer (0180)" },
+    { "praefix": "49118", "name": "Auskunftsdienste",     "gesperrt": true, "grund": "Auskunftsnummer (118xx)" },
+    { "praefix": "4919",  "name": "Sonderdienste",        "gesperrt": true, "grund": "Sondernummer (019x)" },
+    { "praefix": "49700", "name": "Persönliche Rufnummern","gesperrt": true, "grund": "Sondernummer (0700)" },
+    { "praefix": "49800", "name": "Freecall",             "gesperrt": true, "grund": "Sondernummer (0800)" },
+    { "praefix": "4912",  "name": "Innovative Dienste",   "gesperrt": true, "grund": "Sondernummer (012x)" },
+    { "praefix": "4931",  "name": "Testnummern",          "gesperrt": true, "grund": "Sondernummer (031x)" }
+  ]
+}

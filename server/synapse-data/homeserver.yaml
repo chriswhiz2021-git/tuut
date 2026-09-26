@@ -1,0 +1,75 @@
+# Tuut – Synapse-Konfiguration für die LOKALE ENTWICKLUNG.
+# Nicht für den öffentlichen Betrieb geeignet (offene Registrierung, kein TLS).
+#
+# Diese Datei ersetzt die von "synapse generate" erzeugte homeserver.yaml.
+# Signaturschlüssel und Log-Konfiguration bleiben die generierten Dateien.
+#
+# Passwort ist fest eingetragen (nur lokal, Datenbank ist von außen nicht erreichbar).
+
+
+server_name: "tuut.local"
+pid_file: /data/homeserver.pid
+public_baseurl: "http://localhost:8008/"
+
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+
+database:
+  name: psycopg2
+  args:
+    user: synapse
+    password: "tuut-lokal-nur-zum-testen"
+    database: synapse
+    host: synapse-db
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+
+log_config: "/data/tuut.local.log.config"
+media_store_path: /data/media_store
+signing_key_path: "/data/tuut.local.signing.key"
+report_stats: false
+
+# --- Entwicklung: Konten ohne E-Mail-Bestätigung anlegen dürfen ---
+enable_registration: true
+enable_registration_without_verification: true
+
+# --- Online-Status (Skype-Gefühl) ---
+presence:
+  enabled: true
+
+# --- Nutzersuche im eigenen Server erlauben (freiwillig, siehe Etappe 2c) ---
+user_directory:
+  enabled: true
+  search_all_users: false   # nur Nutzer, mit denen man einen Raum teilt – datensparsam
+
+# --- Verschlüsselung für neue Direktchats standardmäßig an ---
+encryption_enabled_by_default_for_room_type: invite
+
+# --- Föderation im Entwicklungsbetrieb aus (nur eigener Server) ---
+federation_domain_whitelist:
+  - tuut.local
+
+# --- Ratenbegrenzung gelockert, damit Tests nicht ausgebremst werden ---
+rc_registration:
+  per_second: 1
+  burst_count: 20
+rc_login:
+  address:
+    per_second: 1
+    burst_count: 20
+  account:
+    per_second: 1
+    burst_count: 20
+rc_message:
+  per_second: 5
+  burst_count: 50
+
+# Wird bewusst NICHT gesetzt (Synapse leitet Ersatz aus dem Signaturschlüssel ab):
+# macaroon_secret_key, form_secret, registration_shared_secret

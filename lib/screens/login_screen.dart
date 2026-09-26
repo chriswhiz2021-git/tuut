@@ -4,7 +4,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../matrix_service.dart';
-import 'contacts_screen.dart';
+import 'home_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   final MatrixService service;
@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await action();
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => ContactsScreen(service: widget.service)),
+        MaterialPageRoute(builder: (_) => HomeShell(service: widget.service)),
       );
     } catch (e) {
       setState(() => _error = _readable(e));

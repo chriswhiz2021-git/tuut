@@ -1,14 +1,20 @@
-// Tuut – Schritt 1b: dünne Schicht über dem Matrix-SDK.
-// Noch OHNE Verschlüsselung (kommt in Schritt 2).
+// Tuut – dünne Schicht über dem Matrix-SDK: Konto, Kontakte, Verschlüsselung, Anrufe.
 import 'package:matrix/matrix.dart';
+import 'calls/call_service.dart';
 
 class MatrixService {
   final Client client;
-  MatrixService(this.client);
+  late final TuutCallService calls;
+
+  MatrixService(this.client) {
+    calls = TuutCallService(client);
+  }
 
   bool get isLoggedIn => client.isLogged();
 
-  /// Prüft, ob unter [homeserverUrl] ein Matrix-Server antwortet.
+  /// true, wenn die Verschlüsselungsbibliothek geladen wurde und das Konto Schlüssel hat.
+  bool get encryptionAvailable => client.encryptionEnabled;
+
   Future<void> connect(String homeserverUrl) async {
     await client.checkHomeserver(Uri.parse(homeserverUrl.trim()));
   }
@@ -21,7 +27,6 @@ class MatrixService {
     );
   }
 
-  /// Registrierung ohne E-Mail-Bestätigung – passt zur lokalen Server-Konfiguration.
   Future<void> register(String username, String password) async {
     await client.register(
       username: username.trim(),
@@ -35,14 +40,18 @@ class MatrixService {
       client.rooms.where((r) => r.isDirectChat).toList()
         ..sort((a, b) => a.getLocalizedDisplayname().compareTo(b.getLocalizedDisplayname()));
 
-  /// Legt einen Direktchat mit einer Matrix-ID an (= Kontaktanfrage).
+  /// Kontaktanfrage = neuer Direktchat. Verschlüsselt, sobald die Bibliothek verfügbar ist.
   Future<void> addContact(String matrixId) async {
     final id = matrixId.trim();
     if (!id.startsWith('@') || !id.contains(':')) {
       throw Exception('Bitte eine vollständige ID eingeben, z. B. @anna:tuut.local');
     }
-    await client.startDirectChat(id, enableEncryption: false);
+    await client.startDirectChat(id, enableEncryption: encryptionAvailable);
   }
+
+  /// Bestehenden, unverschlüsselten Chat auf Ende-zu-Ende-Verschlüsselung umstellen.
+  /// Lässt sich nicht rückgängig machen (Matrix-Regel).
+  Future<void> enableEncryption(Room room) => room.enableEncryption();
 
   Future<void> acceptInvite(Room room) => room.join();
   Future<void> declineInvite(Room room) => room.leave();

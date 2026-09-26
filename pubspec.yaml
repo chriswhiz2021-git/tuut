@@ -1,7 +1,7 @@
 name: tuut_app
 description: Tuut – einfache, quelloffene Alternative zum klassischen Skype.
 publish_to: 'none'
-version: 0.2.0+2
+version: 0.5.0+5
 
 environment:
   sdk: '>=3.6.0 <4.0.0'
@@ -13,9 +13,14 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  flutter_vodozemac: any      # Ende-zu-Ende-Verschlüsselung (vodozemac, Rust)
+  flutter_webrtc: any         # Sprach-/Videoanrufe
+  http: any                   # Verbindung zum Guthaben-Dienst
   matrix: any
   path_provider: any
   sqflite_common_ffi: any
+  url_launcher: any           # Stripe-Bezahlseite im Browser öffnen
+  webrtc_interface: any
 
 flutter:
   uses-material-design: true
